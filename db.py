@@ -1,8 +1,7 @@
-
 import psycopg2
 
 try:
-    connection = psycopg2.connect(
+    conn = psycopg2.connect(
         host="localhost",
         database="coding_tracker",
         user="postgres",
@@ -10,111 +9,152 @@ try:
         port="5432"
     )
 
-    cursor = connection.cursor()
-
-    print("✅ Database Connected Successfully!")
+    cur = conn.cursor()
+    print("Database Connected Successfully!")
 
 except Exception as e:
-    print("❌ Error:", e)
-    
+    print("Connection Error:", e)
+
+
+# -----------------------------
+# Add Problem
+# -----------------------------
 def add_problem(title, platform, difficulty, topic, status, notes):
 
-    query = """
-    INSERT INTO problems
-    (title, platform, difficulty, topic, status, notes)
-    VALUES (%s,%s,%s,%s,%s,%s)
-    """
+    try:
+        query = """
+        INSERT INTO problems
+        (title, platform, difficulty, topic, status, notes)
+        VALUES (%s,%s,%s,%s,%s,%s)
+        """
 
-    values = (
-        title,
-        platform,
-        difficulty,
-        topic,
-        status,
-        notes
-    )
+        cur.execute(query, (title, platform, difficulty, topic, status, notes))
+        conn.commit()
 
-    cursor.execute(query, values)
+        print("\nProblem Added Successfully!")
 
-    connection.commit()
+    except Exception as e:
+        print("Error:", e)
 
-    print("Problem Added Successfully!")
 
-'''add_problem(
-    "Two Sum",
-    "LeetCode",
-    "Easy",
-    "Arrays",
-    "Solved",
-    "Used HashMap"
-)'''
-
+# -----------------------------
+# View Problems
+# -----------------------------
 def view_problems():
 
-    cursor.execute("SELECT * FROM problems")
+    try:
+        cur.execute("SELECT * FROM problems ORDER BY id")
 
-    rows = cursor.fetchall()
+        rows = cur.fetchall()
 
-    if len(rows) == 0:
-        print("No Problems Found")
+        if not rows:
+            print("\nNo Problems Found.")
+            return
 
-    else:
-
-        print("\n------ Coding Problems ------")
+        print("\n========== Coding Problems ==========")
 
         for row in rows:
-            print(row)
+
+            print("----------------------------------------")
+            print(f"ID         : {row[0]}")
+            print(f"Title      : {row[1]}")
+            print(f"Platform   : {row[2]}")
+            print(f"Difficulty : {row[3]}")
+            print(f"Topic      : {row[4]}")
+            print(f"Status     : {row[5]}")
+            print(f"Notes      : {row[6]}")
+            print("----------------------------------------")
+
+    except Exception as e:
+        print("Error:", e)
 
 
+# -----------------------------
+# Search Problem
+# -----------------------------
 def search_problem(title):
 
-    query = """
-    SELECT * FROM problems
-    WHERE title = %s
-    """
+    try:
 
-    cursor.execute(query, (title,))
+        query = "SELECT * FROM problems WHERE title ILIKE %s"
 
-    rows = cursor.fetchall()
+        cur.execute(query, ('%' + title + '%',))
 
-    if len(rows) == 0:
-        print("Problem Not Found")
-    else:
-        print("\nProblem Found:\n")
+        rows = cur.fetchall()
+
+        if not rows:
+            print("\nProblem Not Found.")
+            return
+
+        print("\n========== Search Result ==========")
 
         for row in rows:
-            print(row)
 
-#search_problem("Two Sum")
+            print("----------------------------------------")
+            print(f"ID         : {row[0]}")
+            print(f"Title      : {row[1]}")
+            print(f"Platform   : {row[2]}")
+            print(f"Difficulty : {row[3]}")
+            print(f"Topic      : {row[4]}")
+            print(f"Status     : {row[5]}")
+            print(f"Notes      : {row[6]}")
+            print("----------------------------------------")
 
-def update_status(problem_id, new_status):
+    except Exception as e:
+        print("Error:", e)
 
-    query = """
-    UPDATE problems
-    SET status = %s
-    WHERE id = %s
-    """
 
-    cursor.execute(query, (new_status, problem_id))
+# -----------------------------
+# Update Status
+# -----------------------------
+def update_status(pid, status):
 
-    connection.commit()
+    try:
 
-    print("Status Updated Successfully!")
+        query = "UPDATE problems SET status=%s WHERE id=%s"
 
-#update_status(1, "Revision")
-view_problems()
+        cur.execute(query, (status, pid))
+        conn.commit()
 
-def delete_problem(problem_id):
+        if cur.rowcount == 0:
+            print("\nProblem ID Not Found.")
+        else:
+            print("\nStatus Updated Successfully!")
 
-    query = """
-    DELETE FROM problems
-    WHERE id = %s
-    """
+    except Exception as e:
+        print("Error:", e)
 
-    cursor.execute(query, (problem_id,))
 
-    connection.commit()
+# -----------------------------
+# Delete Problem
+# -----------------------------
+def delete_problem(pid):
 
-    print("Problem Deleted Successfully!")
+    try:
 
-#delete_problem(1)
+        query = "DELETE FROM problems WHERE id=%s"
+
+        cur.execute(query, (pid,))
+        conn.commit()
+
+        if cur.rowcount == 0:
+            print("\nProblem ID Not Found.")
+        else:
+            print("\nProblem Deleted Successfully!")
+
+    except Exception as e:
+        print("Error:", e)
+
+
+# -----------------------------
+# Close Connection
+# -----------------------------
+def close_connection():
+
+    try:
+        cur.close()
+        conn.close()
+        print("\nDatabase Connection Closed.")
+
+    except:
+        pass

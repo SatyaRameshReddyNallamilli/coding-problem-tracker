@@ -33,32 +33,37 @@ while True:
         )
 
     elif choice == "2":
+
         view_problems()
 
     elif choice == "3":
 
-        title = input("Enter Title: ")
-
+        title = input("Enter Problem Title: ")
         search_problem(title)
 
     elif choice == "4":
 
-        pid = int(input("Problem ID: "))
-        status = input("New Status: ")
-
-        update_status(pid, status)
+        try:
+            pid = int(input("Problem ID: "))
+            status = input("New Status: ")
+            update_status(pid, status)
+        except ValueError:
+            print("Please enter a valid ID.")
 
     elif choice == "5":
 
-        pid = int(input("Problem ID: "))
-
-        delete_problem(pid)
+        try:
+            pid = int(input("Problem ID: "))
+            delete_problem(pid)
+        except ValueError:
+            print("Please enter a valid ID.")
 
     elif choice == "6":
 
-        print("Thank you!")
+        print("Thank you for using Coding Problem Tracker!")
+        close_connection()
         break
 
     else:
 
-        print("Invalid Choice")
+        print("Invalid Choice! Please try again.")
